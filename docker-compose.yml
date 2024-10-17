@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+
+  nats:
+    image: nats:latest
+    container_name: NATS
+    ports:
+      - "4222:4222"
+    expose:
+      - "4222"
+
+  user_server:
+    build:
+      context: ./user_server
+    container_name: user_server
+    environment:
+
+      - US_DATABASE_URL=user_database
+      - US_USER=admin
+      - US_PASSWORD=12345
+      - US_DBNAME=users_db
+      - US_PORT=5432
+      - US_NATS_SERVER=nats
+    depends_on:
+      - user_database
+      - nats
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+
+  logs_server:
+    build:
+      context: ./logs_server
+    container_name: logs_server
+    environment:
+      - LS_DATABASE_URL=logs_database
+      - LS_USER=admin
+      - LS_PASSWORD=12345
+      - LS_DBNAME=logs_db
+      - LS_PORT=5432
+      - LS_NATS_SERVER=nats
+    depends_on:
+      - user_server
+      - logs_database
+      - nats
+    ports:
+      - "8081:8081"
+    expose:
+      - "8081"
+
+  health_server:
+    build:
+      context: ./health_server
+    container_name: health_server
+    environment:
+      - HS_DATABASE_URL=health_database
+      - HS_USER=admin
+      - HS_PASSWORD=12345
+      - HS_DBNAME=health_db
+      - HS_PORT=5432
+      - HS_NATS_SERVER=nats
+    depends_on:
+      - health_database
+      - user_server
+      - logs_server
+      - nats
+    ports:
+      - "8082:8082"
+    expose:
+      - "8082"
+
+  user_database:
+    build:
+      context: ./user_database
+    container_name: user_database
+
+  logs_database:
+    build:
+      context: ./logs_database
+    container_name: logs_database
+
+  health_database:
+    build:
+      context: ./health_database
+    container_name: health_database
+
+# jenkins:
+#   image: jenkins/jenkins:lts
+#   ports:
+#     - "6432:8080"
+#     - "50000:50000"
+
+#Levanta el composer con docker-compose up --build

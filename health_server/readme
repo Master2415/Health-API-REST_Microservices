@@ -1,0 +1,9 @@
+npm install --save sequelize
+npm install --save pg
+npm install dotenv 
+npm install axios   
+npm init -y
+npm install nats 
+npm install uuid
+npm install async-mutex
+npm install @sendgrid/mail
